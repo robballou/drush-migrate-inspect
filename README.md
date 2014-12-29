@@ -27,3 +27,8 @@ List the source ID for a migrated item (101 is the destination id):
 
     drush migrate-inspect-source MyMigration 101
     drush mis MyMigration 101
+
+  List the destination ID for a migrated item (101 is the source id):
+
+    drush migrate-inspect-destination MyMigration 101
+    drush mid MyMigration 101
