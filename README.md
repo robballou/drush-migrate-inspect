@@ -22,3 +22,8 @@ List the last 10 migrated items (source and destination ids):
 
     drush migrate-inspect-list MyMigration
     drush mils MyMigration
+
+List the source ID for a migrated item (101 is the destination id):
+
+    drush migrate-inspect-source MyMigration 101
+    drush mis MyMigration 101
