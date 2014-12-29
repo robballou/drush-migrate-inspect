@@ -6,6 +6,13 @@ Tools for inspecting records created by Drupal Migrate.
 
 Currently only [lives on Github](https://github.com/robballou/drush-migrate-inspect).
 
+Installation from Github:
+
+    pushd ~/.drush
+    git clone git@github.com:robballou/drush-migrate-inspect.git migrate_inspect
+    popd
+    drush cc drush
+
 ## Usage
 
 Open the last migrated item in a browser:
