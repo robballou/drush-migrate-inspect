@@ -57,7 +57,7 @@ function migrate_inspect_drush_command() {
   $commands['migrate-inspect-source'] = array(
     'callback' => 'migrate_inspect_source',
     // 'handle-remote-commands' => TRUE,
-    'description' => 'Show last items in the migrate map for a migration',
+    'description' => 'Show the source id for a destination id',
     'aliases' => array('mis'),
     'examples' => array(
       'drush migrate-inspect-source [migration] [id]' => 'List the source id for a destination id',
@@ -69,7 +69,45 @@ function migrate_inspect_drush_command() {
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
   );
 
+  $commands['migrate-inspect-destination'] = array(
+    'callback' => 'migrate_inspect_destination',
+    // 'handle-remote-commands' => TRUE,
+    'description' => 'Show destination id for a source id',
+    'aliases' => array('mid'),
+    'examples' => array(
+      'drush migrate-inspect-destintation [migration] [id]' => 'List the destination id for a source id',
+    ),
+    'arguments' => array(
+      'migration' => 'The migation machine name',
+      'id' => 'The source ID',
+    ),
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
+  );
+
   return $commands;
+}
+
+/**
+ * Get the source id for a migrated item
+ */
+function migrate_inspect_destination($migration, $id) {
+  $migrations = migrate_migrations();
+  if (!isset($migrations[$migration])) {
+    drush_log(t('Migration !migration does not exist', array('!migration' => $migration)), 'error');
+    return 1;
+  }
+
+  // get the map from the migration table
+  $table = $migrations[$migration]->getMap()->getMapTable();
+  $exists = db_query('SHOW TABLES LIKE :table', array(':table' => $table));
+  if ($exists->rowCount() === 1) {
+    $destination_id = db_query('SELECT destid1 FROM ' . $table . ' WHERE sourceid1=:id', array(':id' => $id))->fetchColumn();
+    if ($destination_id) {
+      return drush_log(t('Destination ID: !id', array('!id' => $destination_id)), 'ok');
+    }
+  }
+
+  return drush_log(dt('No migration record found for the source ID !id', array('!id' => $id)), 'error');
 }
 
 /**
