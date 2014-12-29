@@ -51,8 +51,20 @@ function migrate_inspect_drush_command() {
     'arguments' => array(
       'migration' => 'The migation machine name',
     ),
-    'options' => array(
-      'browser' => 'Optional value denotes which browser to use (defaults to operating system default). Set to 0 to suppress opening a browser.',
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
+  );
+
+  $commands['migrate-inspect-source'] = array(
+    'callback' => 'migrate_inspect_source',
+    // 'handle-remote-commands' => TRUE,
+    'description' => 'Show last items in the migrate map for a migration',
+    'aliases' => array('mis'),
+    'examples' => array(
+      'drush migrate-inspect-source [migration] [id]' => 'List the source id for a destination id',
+    ),
+    'arguments' => array(
+      'migration' => 'The migation machine name',
+      'id' => 'The destination ID',
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
   );
@@ -264,4 +276,27 @@ function migrate_inspect_random($migration) {
   drush_start_browser($link);
   drush_backend_set_result($link);
   return $link;
+}
+
+/**
+ * Get the source id for a migrated item
+ */
+function migrate_inspect_source($migration, $id) {
+  $migrations = migrate_migrations();
+  if (!isset($migrations[$migration])) {
+    drush_log(t('Migration !migration does not exist', array('!migration' => $migration)), 'error');
+    return 1;
+  }
+
+  // get the map from the migration table
+  $table = $migrations[$migration]->getMap()->getMapTable();
+  $exists = db_query('SHOW TABLES LIKE :table', array(':table' => $table));
+  if ($exists->rowCount() === 1) {
+    $id = db_query('SELECT sourceid1 FROM ' . $table . ' WHERE destid1=:id', array(':id' => $id))->fetchColumn();
+    if ($id) {
+      return drush_log(t('Source ID: !id', array('!id' => $id)), 'ok');
+    }
+  }
+
+  return drush_log(dt('No migration records exist yet'), 'error');
 }
