@@ -4,7 +4,13 @@ Tools for inspecting records created by [Drupal Migrate](https://drupal.org/proj
 
 ## Installation
 
-Currently only [lives on Github](https://github.com/robballou/drush-migrate-inspect).
+### Drush
+
+Via drush:
+
+    drush dl drush_migrate_inspect
+
+### Github
 
 Installation from Github:
 
