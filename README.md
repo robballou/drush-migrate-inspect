@@ -56,6 +56,20 @@ List the destination ID for a migrated item (101 is the source id):
     drush migrate-inspect-destination MyMigration 101
     drush mid MyMigration 101
 
+## migrate-inspect-find-source
+
+Find the source ID and migration for a destination ID when you don't know the migration it came from:
+
+    drush migrate-inspect-find-source 101
+    drush mifs 101
+
+## migrate-inspect-find-destination
+
+Find the destination ID and migration for a source ID when you don't know the migration it came from:
+
+    drush migrate-inspect-find-destination 101
+    drush mifd 101
+
 ## Why?
 
 Drupal's migrate module has Drush integration that gives you access to several pieces of a migrate workflow, but it doesn't give you an easy way to inspect things as you go. This extension is meant to make it easier to view migrated records/nodes/entities/whatnot as you move through the process. For example, currently if you are working on a migration you may:
