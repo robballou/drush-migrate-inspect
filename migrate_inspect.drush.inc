@@ -166,7 +166,7 @@ function migrate_inspect_find_destination($id) {
 function migrate_inspect_find_source($id) {
   $migrations = migrate_migrations();
   foreach (array_keys($migrations) as $migration) {
-    $source = migrate_inspect_destination($migration, $id, TRUE);
+    $source = migrate_inspect_source($migration, $id, TRUE);
     if ($source) {
       return drush_log(t('Source ID: !id; Migration: !migration', array('!id' => $source, '!migration' => $migration)), 'ok');
     }
