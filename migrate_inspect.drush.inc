@@ -42,7 +42,6 @@ function migrate_inspect_drush_command() {
 
   $commands['migrate-inspect-list'] = array(
     'callback' => 'migrate_inspect_list',
-    // 'handle-remote-commands' => TRUE,
     'description' => 'Show last items in the migrate map for a migration',
     'aliases' => array('mils'),
     'examples' => array(
@@ -56,7 +55,6 @@ function migrate_inspect_drush_command() {
 
   $commands['migrate-inspect-source'] = array(
     'callback' => 'migrate_inspect_source',
-    // 'handle-remote-commands' => TRUE,
     'description' => 'Show the source id for a destination id',
     'aliases' => array('mis'),
     'examples' => array(
@@ -71,7 +69,6 @@ function migrate_inspect_drush_command() {
 
   $commands['migrate-inspect-destination'] = array(
     'callback' => 'migrate_inspect_destination',
-    // 'handle-remote-commands' => TRUE,
     'description' => 'Show destination id for a source id',
     'aliases' => array('mid'),
     'examples' => array(
@@ -84,13 +81,39 @@ function migrate_inspect_drush_command() {
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
   );
 
+  $commands['migrate-inspect-find-source'] = array(
+    'callback' => 'migrate_inspect_find_source',
+    'description' => 'Show destination ID and migration for a source id',
+    'aliases' => array('mifs'),
+    'examples' => array(
+      'drush migrate-inspect-find-source [id]' => 'List the destination id and migration for a source id',
+    ),
+    'arguments' => array(
+      'id' => 'The source ID',
+    ),
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
+  );
+
+  $commands['migrate-inspect-find-destination'] = array(
+    'callback' => 'migrate_inspect_find_destination',
+    'description' => 'Show destination id for a source id',
+    'aliases' => array('mifd'),
+    'examples' => array(
+      'drush migrate-inspect-find-destintation [id]' => 'List the source id and migration for a destination id',
+    ),
+    'arguments' => array(
+      'id' => 'The destination ID',
+    ),
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
+  );
+
   return $commands;
 }
 
 /**
  * Get the source id for a migrated item
  */
-function migrate_inspect_destination($migration, $id) {
+function migrate_inspect_destination($migration, $id, $return = FALSE) {
   $migrations = migrate_migrations();
   if (!isset($migrations[$migration])) {
     drush_log(t('Migration !migration does not exist', array('!migration' => $migration)), 'error');
@@ -103,11 +126,53 @@ function migrate_inspect_destination($migration, $id) {
   if ($exists->rowCount() === 1) {
     $destination_id = db_query('SELECT destid1 FROM ' . $table . ' WHERE sourceid1=:id', array(':id' => $id))->fetchColumn();
     if ($destination_id) {
+      if ($return) {
+        return $destination_id;
+      }
       return drush_log(t('Destination ID: !id', array('!id' => $destination_id)), 'ok');
     }
   }
 
+  if ($return) {
+    return FALSE;
+  }
   return drush_log(dt('No migration record found for the source ID !id', array('!id' => $id)), 'error');
+}
+
+/**
+ * Find the destination ID for a known source ID.
+ *
+ * Similar to migrate_inspect_destination() except you don't need to know the
+ * migration name.
+ */
+function migrate_inspect_find_destination($id) {
+  $migrations = migrate_migrations();
+  foreach (array_keys($migrations) as $migration) {
+    $destination = migrate_inspect_destination($migration, $id, TRUE);
+    if ($destination) {
+      return drush_log(t('Destination ID: !id; Migration: !migration', array('!id' => $destination, '!migration' => $migration)), 'ok');
+    }
+  }
+
+  return drush_log(dt('No migration record found for the source ID !id', array('!id' => $id)), 'error');
+}
+
+/**
+ * Find the source ID for a known destination ID.
+ *
+ * Similar to migrate_inspect_source() except you don't need to know the
+ * migration name.
+ */
+function migrate_inspect_find_source($id) {
+  $migrations = migrate_migrations();
+  foreach (array_keys($migrations) as $migration) {
+    $source = migrate_inspect_destination($migration, $id, TRUE);
+    if ($source) {
+      return drush_log(t('Source ID: !id; Migration: !migration', array('!id' => $source, '!migration' => $migration)), 'ok');
+    }
+  }
+
+  return drush_log(dt('No migration record found for the destination ID !id', array('!id' => $id)), 'error');
 }
 
 /**
@@ -319,7 +384,7 @@ function migrate_inspect_random($migration) {
 /**
  * Get the source id for a migrated item
  */
-function migrate_inspect_source($migration, $id) {
+function migrate_inspect_source($migration, $id, $return = FALSE) {
   $migrations = migrate_migrations();
   if (!isset($migrations[$migration])) {
     drush_log(t('Migration !migration does not exist', array('!migration' => $migration)), 'error');
@@ -332,9 +397,15 @@ function migrate_inspect_source($migration, $id) {
   if ($exists->rowCount() === 1) {
     $id = db_query('SELECT sourceid1 FROM ' . $table . ' WHERE destid1=:id', array(':id' => $id))->fetchColumn();
     if ($id) {
+      if ($return) {
+        return $id;
+      }
       return drush_log(t('Source ID: !id', array('!id' => $id)), 'ok');
     }
   }
 
+  if ($return) {
+    return FALSE;
+  }
   return drush_log(dt('No migration records exist yet'), 'error');
 }
