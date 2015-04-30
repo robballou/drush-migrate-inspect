@@ -146,15 +146,23 @@ function migrate_inspect_destination($migration, $id, $return = FALSE) {
  * migration name.
  */
 function migrate_inspect_find_destination($id) {
-  $migrations = migrate_migrations();
-  foreach (array_keys($migrations) as $migration) {
-    $destination = migrate_inspect_destination($migration, $id, TRUE);
-    if ($destination) {
-      return drush_log(t('Destination ID: !id; Migration: !migration', array('!id' => $destination, '!migration' => $migration)), 'ok');
-    }
+  if (strpos($id, ',') !== FALSE) {
+    $ids = explode(',', $id);
+  }
+  else {
+    $ids = array($id);
   }
 
-  return drush_log(dt('No migration record found for the source ID !id', array('!id' => $id)), 'error');
+  $migrations = migrate_migrations();
+  foreach ($ids as $id) {
+    foreach (array_keys($migrations) as $migration) {
+      $destination = migrate_inspect_destination($migration, $id, TRUE);
+      if ($destination) {
+        return drush_log(t('Source ID: !source; Destination ID: !id; Migration: !migration', array('!source' => $id, '!id' => $destination, '!migration' => $migration)), 'ok');
+      }
+    }
+    drush_log(dt('No migration record found for the source ID !id', array('!id' => $id)), 'error');
+  }
 }
 
 /**
